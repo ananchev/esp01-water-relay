@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ESP8266 Web Server</title>
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body >
+  <h1>ESP8266 Web Server</h1>
+  <p>Relay state<span class="relay-state" id="state"> %STATE%</span></p>
+  <p>
+    <a href="javascript:void(0);" onclick="start('1hr');"><button class="button" id="1hr">ON for 1 hour</button></a>
+    <a href="javascript:void(0);" onclick="start('8hrs');"><button class="button" id="8hrs">ON for 8 hours</button></a>
+    <a href="javascript:void(0);" onclick="start('12hrs');"><button class="button" id="12hrs">ON for 12 hours</button></a>
+    <a href="javascript:void(0);" onclick="stop()" href="#"><button class="button button2">OFF</button></a>
+  </p>
+  <p>
+    <span class="sensor-labels">Remaining watering time: </span>
+    <span class="sensor-labels" id="countdown"></span>
+  </p>
+</body>
+<script>
+  function checkWateringInterval(callback) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        retval = JSON.parse(this.responseText);
+        callback.apply(retval)
+      }
+    };
+    xhttp.open("GET", "remainingWateringTime", true);
+    xhttp.send();
+  };
+
+
+  window.onload=function(){
+    var display = document.querySelector('#countdown');
+    startTimeUpdate(display);
+
+    //get the active interval (if any) and update the resp. button class to indicate its button is active
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        activateButton(this.responseText);
+      }
+    };
+    xhttp.open("GET", "activeInterval", true);
+    xhttp.send();
+  };
+
+
+  function start(interval) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        //update the state indicator
+        var state = document.querySelector('#state');
+        state.textContent = " ON";
+
+        //(re)set a one hour timer on the web interface
+        var display = document.querySelector('#countdown');
+        startTimeUpdate(display);
+      }
+    };
+    xhttp.open("GET", "start?interval="+interval, true);
+    xhttp.send();
+
+    deactivateAllButtons();
+    activateButton(interval); 
+  };
+
+
+  function stop(){
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        //update the state indicator
+        var state = document.querySelector('#state');
+        state.textContent = " OFF";
+
+        //destroy any existing setInterval
+        if(timeUpdate) {
+          clearInterval(timeUpdate); // destroy previous setInterval
+        }
+
+        //set the countdown value to zeroes
+        var display = document.querySelector('#countdown');
+        display.textContent = "00:00";
+      }
+    };
+    xhttp.open("GET", "off", true);
+    xhttp.send();
+
+    deactivateAllButtons();
+  }
+
+
+  // variable needed to be able to store the timer reference and update/clear
+  var timeUpdate = null;
+
+  function startTimeUpdate(display) {
+    if(timeUpdate) {
+        clearInterval(timeUpdate); // destroy previous setInterval
+    }
+    // check every one second the remaining watering time and update the timer
+    timeUpdate = setInterval(function () { 
+      checkWateringInterval(function(){ 
+
+        if (this["remainingSeconds"] == 0) { //do not continue executing the setInterval if the watering interval is zero
+          clearInterval(timeUpdate);
+          display.textContent = "00:00";
+
+          return;
+        }
+
+        minutes = parseInt(this["remainingSeconds"] / 60, 10);
+        seconds = parseInt(this["remainingSeconds"] % 60, 10);
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+
+        display.textContent = minutes + ":" + seconds;
+      })
+    }, 1000);
+  }
+
+
+  function activateButton(buttonID) {
+    var btn = document.getElementById(buttonID);
+    btn.className += " active";
+  }
+
+
+  function deactivateAllButtons(){
+    var buttons = document.getElementsByClassName('button');
+    for (var i = 0; i < buttons.length; ++i) {
+      var btn = buttons[i];  
+      if (btn.classList.contains("active")){
+        btn.className = btn.className.replace(" active", "")
+      }
+    }
+  }
+
+</script>
+</html>
+ 
