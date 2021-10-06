@@ -9,20 +9,34 @@
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body >
-  <h1>ESP8266 Web Server</h1>
-  <p>Relay state<span class="relay-state" id="state"> %STATE%</span></p>
-  <p>
-    <a href="javascript:void(0);" onclick="start('1hr');"><button class="button" id="1hr">ON for 1 hour</button></a>
-    <a href="javascript:void(0);" onclick="start('8hrs');"><button class="button" id="8hrs">ON for 8 hours</button></a>
-    <a href="javascript:void(0);" onclick="start('12hrs');"><button class="button" id="12hrs">ON for 12 hours</button></a>
-    <a href="javascript:void(0);" onclick="stop()" href="#"><button class="button button2">OFF</button></a>
-  </p>
-  <p>
-    <span class="sensor-labels">Remaining watering time: </span>
-    <span class="sensor-labels" id="countdown"></span>
-  </p>
+  <h1>Water Relay Console</h1>
+  <div class="grid">
+    <div>
+      <p>Sprinkler<span class="relay-state" id="sprinkler-state"> %SPRINKLER_STATE%</span></p>
+      <p>
+        <a href="javascript:void(0);" onclick="start('1hr');"><button class="button" id="1hr">ON for 1 hour</button></a>
+      </p>    
+    </div>
+    <div >
+      <p>Drip irrigation<span class="relay-state" id="drip-irrigation-state"> %DRIP_IRRIGATION_STATE%</span></p>
+      <p>
+        <a href="javascript:void(0);" onclick="start('8hrs');"><button class="button" id="8hrs">ON for 8 hours</button></a>
+        <a href="javascript:void(0);" onclick="start('12hrs');"><button class="button" id="12hrs">ON for 12 hours</button></a>
+      </p>
+    </div>
+    <div class>
+      <p>
+        <span class="sensor-labels">Remaining watering time </span>
+        <span class="sensor-labels" id="countdown"></span>
+      </p>
+      <p>
+        <a href="javascript:void(0);" onclick="stop()" href="#"><button class="button button2">OFF</button></a>
+      </p>
+    </div>
+  </div>
 </body>
 <script>
+
   function checkWateringInterval(callback) {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
@@ -56,11 +70,24 @@
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
       if (this.readyState == 4 && this.status == 200) {
-        //update the state indicator
-        var state = document.querySelector('#state');
-        state.textContent = " ON";
 
-        //(re)set a one hour timer on the web interface
+        //update the state indicators
+        var sprinklerState = document.querySelector('#sprinkler-state');
+        var dripIrrigationState = document.querySelector('#drip-irrigation-state');
+        switch (interval) {
+          case "1hr":
+            sprinklerState.textContent = " ON";
+            dripIrrigationState.textContent = " OFF";
+            break;
+          case "8hrs":
+          case "12hrs":
+            sprinklerState.textContent = " OFF";
+            dripIrrigationState.textContent = " ON";
+            break;
+          default:
+            break;
+        }
+        //(re)set the timer on the web interface
         var display = document.querySelector('#countdown');
         startTimeUpdate(display);
       }
@@ -77,9 +104,10 @@
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
       if (this.readyState == 4 && this.status == 200) {
-        //update the state indicator
-        var state = document.querySelector('#state');
-        state.textContent = " OFF";
+
+        //update the state indicators
+        var stateElements = document.querySelectorAll("[id$=state]");
+        Array.prototype.forEach.call(stateElements, function(elmnt){elmnt.textContent= " OFF"});
 
         //destroy any existing setInterval
         if(timeUpdate) {

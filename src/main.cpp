@@ -20,35 +20,50 @@ int remainingWateringTime;
 
 
 // Set relay GPIO
-const int relayPin = 0; // relay connected to  GPIO0
+const int sprinklerRelayPin = 0; // relay connected to  GPIO0
+const int dripIrrigationRelayPin = 1; // relay connected to  GPIO1
 
-// Stores  state
-String relayState;
+// Store the relay states
+String sprinklerRelayState;
+String dripIrrigationRelayState;
 
 // Stores the interval for which watering was set 
 String interval = "";
 
-// Replaces placeholder with LED state value
+
+// Replaces placeholders with the relay states (called on calling the 'index' page)
 String processor(const String& var){
   // Serial.println(var);
-  if(var == "STATE"){
-    if(digitalRead(relayPin)){
-      relayState = "ON";
+  if(var == "SPRINKLER_STATE"){
+    if(digitalRead(sprinklerRelayPin)){
+      sprinklerRelayState = "ON";
     }
     else{
-      relayState = "OFF";
+      sprinklerRelayState = "OFF";
     }
     // Serial.print(relayState);
-    return relayState;
-  }  
+    return sprinklerRelayState;
+  }
+  else if (var == "DRIP_IRRIGATION_STATE"){
+    if(digitalRead(dripIrrigationRelayPin)){
+      dripIrrigationRelayState = "ON";
+    }
+    else{
+      dripIrrigationRelayState = "OFF";
+    }
+    // Serial.print(relayState);
+    return dripIrrigationRelayState;
+  }
   else {
     return "Nothing";
   }
 };
 
 
+
 void setup() {
-  Serial.begin(115200);
+
+  // Serial.begin(115200);
 
   // Initialize SPIFFS 
   if(!SPIFFS.begin()){
@@ -56,10 +71,17 @@ void setup() {
   return;
   }
 
+  // Swap the GPIO 1 (TX) pin to a GPIO.
+  // To use TX RX as GPIO Serial.begin() must be removed from code.
+  pinMode(1, FUNCTION_3);
 
-  // Configure the relay pin as output and set it to Low
-  pinMode(relayPin,OUTPUT);
-  digitalWrite(relayPin, LOW);
+  // Configure the relay pins as output and set to Low
+  pinMode(sprinklerRelayPin,OUTPUT);
+  digitalWrite(sprinklerRelayPin, LOW);
+  pinMode(dripIrrigationRelayPin,OUTPUT);
+  digitalWrite(dripIrrigationRelayPin, LOW);
+
+  // Store the remaining watering time
   remainingWateringTime = -1;
 
   // Initialise and connect Wi-Fi
@@ -114,23 +136,28 @@ void setup() {
         }
     }
 
-    // Determine the watering interval
+    // Determine the requested watering interval and start resp. water relay
     switch (resolveParameters(interval))
     {
     case OneHour:
       wateringInterval = 1*60*60*1000; // in milliseconds = 1 hour * 60 min * 60 sec * 1000
+      digitalWrite(dripIrrigationRelayPin, LOW); // make sure the drip irrgation relay is off 
+      digitalWrite(sprinklerRelayPin, HIGH); // turn on sprinkler relay
       break;
     case EightHours:
       wateringInterval = 8*60*60*1000; // in milliseconds = 8 hours * 60 min * 60 sec * 1000
+      digitalWrite(sprinklerRelayPin, LOW); // make sure the sprinkler relay is off 
+      digitalWrite(dripIrrigationRelayPin, HIGH); // turn on drip irrigation relay
       break;
     case TwelveHours:
       wateringInterval = 12*60*60*1000; // in milliseconds = 8 hours * 60 min * 60 sec * 1000
+      digitalWrite(sprinklerRelayPin, LOW); // make sure the sprinkler relay is off 
+      digitalWrite(dripIrrigationRelayPin, HIGH); // turn on drip irrigation relay
       break;
     default:
       break;
     }
 
-    digitalWrite(relayPin, HIGH); // turn on relay by set GPIO to HIGH
 
     prevReadingTime = millis();
     remainingWateringTime = prevReadingTime + wateringInterval;
@@ -151,7 +178,11 @@ void setup() {
   server.on("/off", HTTP_GET, [](AsyncWebServerRequest *request){
     Serial.println("'/off' called");
 
-    digitalWrite(relayPin, LOW);
+    // make sure both relays are off
+    digitalWrite(sprinklerRelayPin, LOW);  
+    digitalWrite(dripIrrigationRelayPin, LOW);
+
+    // reset interval
     remainingWateringTime = 0;
     prevReadingTime = 0;
     String lastSetInterval = interval; 
@@ -192,9 +223,10 @@ void loop() {
   }
   else if (remainingWateringTime == 0)
   { 
-      // turn off the water
-      digitalWrite(relayPin, LOW);
-      Serial.println("relay was switched off as watering time completed");
+      // turn off the water (both relays)
+      digitalWrite(sprinklerRelayPin, LOW);  
+      digitalWrite(dripIrrigationRelayPin, LOW);
+      Serial.println("Water was switched off as watering time completed");
       remainingWateringTime = -1;
   }
   else 
@@ -202,7 +234,6 @@ void loop() {
       // do nothing as relay is not active
   }
   
-    
 }  
 
 

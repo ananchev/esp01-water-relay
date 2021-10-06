@@ -4,7 +4,22 @@ html {
   margin: 0px auto;
   text-align: center;
 }
+
+.grid {
+  width: 640px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: repeat(1, auto);
+  grid-template-rows: repeat(3, auto);
+  grid-gap: 16px;
+}
+
+.grid > div {
+  background: lightgray;
+}
+
 h1 {
+  align-self: start;
   color: #0F3376;
   padding: 2vh;
 }
@@ -42,3 +57,5 @@ p {
   vertical-align:middle;
   padding-bottom: 15px;
 }
+
+
