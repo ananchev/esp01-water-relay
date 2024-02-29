@@ -175,9 +175,7 @@ void setup()
         // do nothing for 1 second
       }
       
-      // wateringInterval = 1*60*60*1000; // in milliseconds = 1 hour * 60 min * 60 sec * 1000
-      wateringInterval = 1*1*60*1000; // in milliseconds = 1 hour * 60 min * 60 sec * 1000
-
+      wateringInterval = 1*60*60*1000; // in milliseconds = 1 hour * 60 min * 60 sec * 1000
       // turn on sprinkler relay
       Serial.write(activate_relay_one, sizeof(activate_relay_one));
       Serial.println("activate_relay_one");
