@@ -13,7 +13,7 @@ AsyncWebServer server(80);
 long prevReadingTime = 0;
 long wateringInterval = 0;
 long postpone_seconds = 0;
-int remainingWateringTime;
+long remainingWateringTime = 0;
 
 // Open the first relay： A0 01 01 A2
 // Close the first Relay： A0 01 00 A1
@@ -25,7 +25,6 @@ const byte deactivate_relay_one[] = {0xA0, 0x01, 0x00, 0xA1};
 const byte activate_relay_one[] = {0xA0, 0x01, 0x01, 0xA2};
 const byte deactivate_relay_two[] = {0xA0, 0x02, 0x00, 0xA2};
 const byte activate_relay_two[] = {0xA0, 0x02, 0x01, 0xA3};
-const byte eol[] = {0x0d, 0x0a};
 
 // Store the relay states
 int sprinklerRelay = 0;
@@ -176,7 +175,8 @@ void setup()
         // do nothing for 1 second
       }
       
-      wateringInterval = 1*60*60*1000; // in milliseconds = 1 hour * 60 min * 60 sec * 1000
+      // wateringInterval = 1*60*60*1000; // in milliseconds = 1 hour * 60 min * 60 sec * 1000
+      wateringInterval = 1*1*60*1000; // in milliseconds = 1 hour * 60 min * 60 sec * 1000
 
       // turn on sprinkler relay
       Serial.write(activate_relay_one, sizeof(activate_relay_one));
@@ -224,10 +224,8 @@ void setup()
     }
 
     prevReadingTime = millis();
-    remainingWateringTime = prevReadingTime + wateringInterval;
-    Serial.print("Water activated, will stop after ");
-    Serial.print(remainingWateringTime);
-    Serial.println();
+    remainingWateringTime =  wateringInterval;
+
     request->send(SPIFFS, "/index.html", String(), false, processor); });
 
   server.on("/activeInterval", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -250,14 +248,14 @@ void setup()
 
   server.on("/remainingWateringTime", HTTP_GET, [](AsyncWebServerRequest *request)
             {
-    Serial.println("'/remainingWateringTime' called");
+    // Serial.println("'/remainingWateringTime' called");
     if (remainingWateringTime <= 0)
     {
-        Serial.println("watering inactive");
+      Serial.println("watering inactive");
     }
     else
     {
-        //Serial.println("watering ongoing");
+      // Serial.println("watering ongoing... ");
     }
     String retval = "{\"remainingSeconds\": " + String(remainingWateringTime/1000) + " ,\"intervalSet\": \"" + interval + "\"}";
     // add to the return value information which watering interval was set
@@ -272,7 +270,6 @@ void loop()
   // update the remaining time to keep water on
   if (remainingWateringTime > 0)
   {
-    // Serial.println("remaining wtarting time >0");
     long now = millis();
     remainingWateringTime = remainingWateringTime - (now - prevReadingTime);
     prevReadingTime = now;
@@ -290,7 +287,11 @@ void loop()
     Serial.println("deactivate_relay_two");
     dripIrrigationRelay = 0;
     Serial.println("Water was switched off as watering time completed");
+    
+    // reset the intervals
     remainingWateringTime = -1;
+    prevReadingTime = 0;
+    interval = "";
   }
   else
   {
