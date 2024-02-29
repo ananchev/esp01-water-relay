@@ -140,7 +140,11 @@
         if (this["remainingSeconds"] == 0) { //do not continue executing the setInterval if the watering interval is zero
           clearInterval(timeUpdate);
           display.textContent = "00:00";
-
+          //set the state indicators to OFF
+          var stateElements = document.querySelectorAll("[id$=state]");
+          Array.prototype.forEach.call(stateElements, function(elmnt){elmnt.textContent= " OFF"});
+          //deactive the button
+          deactivateAllButtons();
           return;
         }
 
