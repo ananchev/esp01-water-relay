@@ -14,14 +14,14 @@
     <div>
       <p>Sprinkler<span class="relay-state" id="sprinkler-state"> %SPRINKLER_STATE%</span></p>
       <p>
-        <a href="javascript:void(0);" onclick="start('1hr');"><button class="button" id="1hr">ON for 1 hour</button></a>
+        <a href="javascript:void(0);" onclick="start('30min');"><button class="button" id="30min">ON for 30 min</button></a>
       </p>    
     </div>
     <div >
       <p>Drip irrigation<span class="relay-state" id="drip-irrigation-state"> %DRIP_IRRIGATION_STATE%</span></p>
       <p>
-        <a href="javascript:void(0);" onclick="start('8hrs');"><button class="button" id="8hrs">ON for 8 hours</button></a>
-        <a href="javascript:void(0);" onclick="start('12hrs');"><button class="button" id="12hrs">ON for 12 hours</button></a>
+        <a href="javascript:void(0);" onclick="start('1hr');"><button class="button" id="1hr">ON for 1 hour</button></a>
+        <a href="javascript:void(0);" onclick="start('2hrs');"><button class="button" id="2hrs">ON for 2 hours</button></a>
       </p>
     </div>
     <div class>
@@ -75,12 +75,12 @@
         var sprinklerState = document.querySelector('#sprinkler-state');
         var dripIrrigationState = document.querySelector('#drip-irrigation-state');
         switch (interval) {
-          case "1hr":
+          case "30min":
             sprinklerState.textContent = " ON";
             dripIrrigationState.textContent = " OFF";
             break;
-          case "8hrs":
-          case "12hrs":
+          case "1hr":
+          case "2hrs":
             sprinklerState.textContent = " OFF";
             dripIrrigationState.textContent = " ON";
             break;

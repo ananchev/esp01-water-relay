@@ -162,7 +162,7 @@ void setup()
     switch (resolveParameters(interval))
     {
 
-    case OneHour:
+    case HalfHour:
 
       // turn off drip irrigation relay
       Serial.write(deactivate_relay_two, sizeof(deactivate_relay_two)); 
@@ -175,14 +175,14 @@ void setup()
         // do nothing for 1 second
       }
       
-      wateringInterval = 1*60*60*1000; // in milliseconds = 1 hour * 60 min * 60 sec * 1000
+      wateringInterval = 30*60*1000; // in milliseconds = 30 min * 60 sec * 1000
       // turn on sprinkler relay
       Serial.write(activate_relay_one, sizeof(activate_relay_one));
       Serial.println("activate_relay_one");
       sprinklerRelay = 1;
       break;
 
-    case EightHours:
+    case OneHour:
 
       // turn off sprinkler relay
       Serial.write(deactivate_relay_one, sizeof(deactivate_relay_one)); 
@@ -191,7 +191,7 @@ void setup()
         // do nothing for 1 second
       }
 
-      wateringInterval = 8*60*60*1000; // in milliseconds = 8 hours * 60 min * 60 sec * 1000
+      wateringInterval = 1*60*60*1000; // in milliseconds = 1 hour * 60 min * 60 sec * 1000
 
       // turn on drip irrgation relay
       Serial.write(activate_relay_two, sizeof(activate_relay_two));
@@ -199,7 +199,7 @@ void setup()
       dripIrrigationRelay = 1;
       break;
 
-    case TwelveHours:
+    case TwoHours:
 
       // turn off sprinkler relay
       Serial.write(deactivate_relay_one, sizeof(deactivate_relay_one)); 
@@ -208,7 +208,7 @@ void setup()
         // do nothing for 1 second
       }
 
-      wateringInterval = 12*60*60*1000; // in milliseconds = 8 hours * 60 min * 60 sec * 1000
+      wateringInterval = 2*60*60*1000; // in milliseconds = 2 hours * 60 min * 60 sec * 1000
 
       // turn on drip irrgation relay
       Serial.write(activate_relay_two, sizeof(activate_relay_two));

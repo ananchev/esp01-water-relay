@@ -4,9 +4,9 @@ bool in_array(const String value, const std::vector<String> validValues); // use
 
 enum WateringDuration {
     Option_Invalid,
+    HalfHour,
     OneHour,
-    EightHours,
-    TwelveHours
+    TwoHours
 };
 
 WateringDuration resolveParameters(String input);
